@@ -23,14 +23,16 @@ function LoginPage() {
   // -------------------------------
   const validateEmail = (value) => {
     if (!value) return "Email is required";
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) return "Invalid email address";
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value))
+      return "Invalid email address";
     return "";
   };
 
   const validatePassword = (value) => {
     if (!value) return "Password is required";
     if (value.length < 6) return "Password must be at least 6 characters";
-    if (!/[A-Z]/.test(value)) return "Password must contain an uppercase letter";
+    if (!/[A-Z]/.test(value))
+      return "Password must contain an uppercase letter";
     if (!/[0-9]/.test(value)) return "Password must contain a number";
     return "";
   };
@@ -54,7 +56,12 @@ function LoginPage() {
       const { data } = await axios.post(
         `${API_BASE_URL}/auth/login`,
         { email, password, rememberMe },
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       // ✅ Save auth info
@@ -62,7 +69,7 @@ function LoginPage() {
       localStorage.setItem("userName", data.user.name);
       localStorage.setItem("userRole", data.user.role);
 
-      // ✅ Navigate to correct dashboard
+      // ✅ Navigate based on user role
       const next =
         data.user.role === "admin"
           ? "/admin-dashboard"
@@ -76,7 +83,9 @@ function LoginPage() {
       if (err.response?.status === 400) {
         setError(err.response.data.message || "Invalid email or password");
       } else if (err.message === "Network Error") {
-        setError("Network error. Check your connection or backend status.");
+        setError(
+          "Network error. Check your internet or if the backend server is running."
+        );
       } else {
         setError("Login failed. Please try again.");
       }
@@ -99,14 +108,18 @@ function LoginPage() {
       // ✅ Get Google ID token from Firebase
       const credential = GoogleAuthProvider.credentialFromResult(result);
       const tokenId = credential?.idToken;
-
       if (!tokenId) throw new Error("Failed to retrieve Google token");
 
       // ✅ Send Google token to backend for verification
       const { data } = await axios.post(
         `${API_BASE_URL}/auth/google-login`,
         { tokenId },
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
 
       localStorage.setItem("token", data.token);
@@ -139,7 +152,7 @@ function LoginPage() {
   };
 
   // -------------------------------
-  // 🧾 Render UI
+  // 🧾 UI
   // -------------------------------
   return (
     <div className="login-container">
